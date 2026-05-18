@@ -9,4 +9,7 @@ export class UserDetailsDto {
   verificationTokenExpiresAt?: Date | null;
   resetToken?: string | null;
   resetTokenExpiresAt?: Date | null;
+  refreshTokenHash?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }

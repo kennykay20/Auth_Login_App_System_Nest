@@ -1,11 +1,20 @@
-import { IRepository } from '../../../CORE/Applications/Persistences/IRepository';
+import { IUserRepository } from '../../../CORE/Applications/Persistences/IUserRepository';
 import { User } from '../../../Domain/Entities/User';
 import { db } from '../Db';
 import { eq } from 'drizzle-orm';
 import { users, type NewUser } from '../Db/schema';
 import { UserMapper } from 'src/CORE/Applications/Mappers/UserMapper';
 
-export class UserRepository implements IRepository<User> {
+export class UserRepository implements IUserRepository {
+  async findByEmail(email: string): Promise<User | null> {
+    const result = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+    if (result == null) return null;
+    else {
+      return UserMapper.toDomain(result);
+    }
+  }
   async findAll(): Promise<User[]> {
     const results = await db.query.users.findMany();
     return results.map((data) => UserMapper.toDomain(data));
@@ -26,10 +35,7 @@ export class UserRepository implements IRepository<User> {
     return UserMapper.toDomain(result);
   }
 
-  async update(
-    id: string,
-    item: Partial<typeof users.$inferInsert>,
-  ): Promise<User | null> {
+  async update(id: string, item: Partial<NewUser>): Promise<User | null> {
     const [result] = await db
       .update(users)
       .set({ ...item, updatedAt: new Date() })
