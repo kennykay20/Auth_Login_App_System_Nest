@@ -1,0 +1,46 @@
+import { IRepository } from '../../../CORE/Applications/Persistences/IRepository';
+import { User } from '../../../Domain/Entities/User';
+import { db } from '../Db';
+import { eq } from 'drizzle-orm';
+import { users, type NewUser } from '../Db/schema';
+import { UserMapper } from 'src/CORE/Applications/Mappers/UserMapper';
+
+export class UserRepository implements IRepository<User> {
+  async findAll(): Promise<User[]> {
+    const results = await db.query.users.findMany();
+    return results.map((data) => UserMapper.toDomain(data));
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const result = await db.query.users.findFirst({
+      where: eq(users.id, id),
+    });
+    if (result == null) return null;
+    else {
+      return UserMapper.toDomain(result);
+    }
+  }
+
+  async create(item: NewUser): Promise<User> {
+    const [result] = await db.insert(users).values(item).returning();
+    return UserMapper.toDomain(result);
+  }
+
+  async update(
+    id: string,
+    item: Partial<typeof users.$inferInsert>,
+  ): Promise<User | null> {
+    const [result] = await db
+      .update(users)
+      .set({ ...item, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+
+    if (result == null) return null;
+    return UserMapper.toDomain(result);
+  }
+
+  async delete(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+}
