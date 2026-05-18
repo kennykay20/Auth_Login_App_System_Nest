@@ -28,6 +28,16 @@ export class UserService {
     return UserMapper.fromDomainToUserDetailsDto(result);
   }
 
+  async findUserByVerificationToken(
+    token: string,
+  ): Promise<UserDetailsDto | null> {
+    const result = await this.userRepository.findByVerificationToken(token);
+    if (!result) {
+      throw new NotFoundException('User not found');
+    }
+    return UserMapper.fromDomainToUserDetailsDto(result);
+  }
+
   async createUser(userDetails: CreateUserDto): Promise<UserDetailsDto> {
     const user = UserMapper.toDomainFromCreateUserDto(userDetails);
     const createdUser = await this.userRepository.create(user);

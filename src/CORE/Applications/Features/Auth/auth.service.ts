@@ -65,6 +65,44 @@ export class AuthService {
     };
   }
 
+  async verifyEmail(token: string, res: Response) {
+    const user = await this.userService.findUserByVerificationToken(token);
+    if (!user || !user.verificationToken) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    if (
+      user.verificationTokenExpiresAt &&
+      user.verificationTokenExpiresAt < new Date()
+    ) {
+      throw new BadRequestException(
+        'Verificationtoken has expired, please request a new one',
+      );
+    }
+    //
+    await this.userService.updateUser(user.id, {
+      isVerified: true,
+      verificationToken: null,
+      verificationTokenExpiresAt: null,
+    });
+
+    const tokens = await this.generateToken(user);
+    res.cookie('token', token, { httpOnly: true });
+    await this.saveRefreshTokenHash(user.id, tokens.refreshToken);
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+
+    return {
+      message: 'Email verified successfully, you are now logged in.',
+      accessToken: tokens.accessToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
+  }
+
   async Login(dto: LoginDto, res: Response) {
     const user = await this.userService.getUserByEmail(dto.email);
 

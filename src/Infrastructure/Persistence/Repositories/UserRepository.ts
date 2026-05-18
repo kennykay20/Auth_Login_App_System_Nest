@@ -30,6 +30,14 @@ export class UserRepository implements IUserRepository {
     }
   }
 
+  async findByVerificationToken(token: string): Promise<User | null> {
+    const result = await db.query.users.findFirst({
+      where: eq(users.verificationToken, token),
+    });
+    if (result == null) return null;
+    return UserMapper.toDomain(result);
+  }
+
   async create(item: NewUser): Promise<User> {
     const [result] = await db.insert(users).values(item).returning();
     return UserMapper.toDomain(result);
