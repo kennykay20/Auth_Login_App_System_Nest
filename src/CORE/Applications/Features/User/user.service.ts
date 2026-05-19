@@ -20,6 +20,7 @@ export class UserService {
   async getUserById(id: string): Promise<UserDetailsDto> {
     const result = await this.userRepository.findById(id);
     if (!result) {
+      console.log('User not found');
       throw new NotFoundException('User not found');
     }
     return UserMapper.fromDomainToUserDetailsDto(result);
@@ -39,6 +40,7 @@ export class UserService {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
+      console.log('User not found');
       throw new NotFoundException('User not found');
     }
 
@@ -50,6 +52,16 @@ export class UserService {
   ): Promise<UserDetailsDto | null> {
     const result = await this.userRepository.findByVerificationToken(token);
     if (!result) {
+      console.log('User not found');
+      throw new NotFoundException('User not found');
+    }
+    return UserMapper.fromDomainToUserDetailsDto(result);
+  }
+
+  async findUserByResetToken(token: string) {
+    const result = await this.userRepository.findByResetToken(token);
+    if (!result) {
+      console.log('User not found');
       throw new NotFoundException('User not found');
     }
     return UserMapper.fromDomainToUserDetailsDto(result);
@@ -58,12 +70,10 @@ export class UserService {
   async createUser(userDetails: CreateUserDto): Promise<UserDetailsDto> {
     const user = UserMapper.toNewUser(userDetails);
     console.log(
-      `userDto - email - ${user.email}, and password - ${user.passwordHash}`,
+      `userDto - email - ${user.email}, and verificationToken - ${user.verificationToken}`,
     );
     const createdUser = await this.userRepository.create(user);
-    console.log(
-      `user created id - ${createdUser.id}, createdDate - ${createdUser.createdAt.toISOString()}`,
-    );
+    console.log(`user createdDate - ${createdUser.createdAt.toISOString()}`);
     return UserMapper.fromDomainToUserDetailsDto(createdUser);
   }
 
@@ -73,9 +83,11 @@ export class UserService {
   ): Promise<UserDetailsDto | null> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
+      console.log('User not found');
       throw new NotFoundException('User not found');
     }
     if (!updatePartialDataUser) {
+      console.log('No data provided for update');
       throw new NotFoundException('No data provided for update');
     }
     //const updateData = UserMapper.toPartialDbUser(updatePartialDataUser);
@@ -84,6 +96,7 @@ export class UserService {
       updatePartialDataUser,
     );
     if (!updatedUser) {
+      console.log('User not found');
       throw new NotFoundException('User not found');
     }
     return UserMapper.fromDomainToUserDetailsDto(updatedUser);

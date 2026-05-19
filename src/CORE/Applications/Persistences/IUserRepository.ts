@@ -6,4 +6,6 @@ export interface IUserRepository extends IRepository<User, NewUser> {
   findByEmail(email: string): Promise<User | null>;
 
   findByVerificationToken(token: string): Promise<User | null>;
+
+  findByResetToken(token: string): Promise<User | null>;
 }

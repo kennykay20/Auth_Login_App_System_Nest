@@ -40,6 +40,14 @@ export class UserRepository implements IUserRepository {
     return UserMapper.toDomain(result);
   }
 
+  async findByResetToken(token: string): Promise<User | null> {
+    const result = await db.query.users.findFirst({
+      where: eq(users.resetToken, token),
+    });
+    if (result == null) return null;
+    return UserMapper.toDomain(result);
+  }
+
   async create(item: NewUser): Promise<User> {
     console.log(
       `item for create email- ${item.email}, password - ${item.passwordHash}`,

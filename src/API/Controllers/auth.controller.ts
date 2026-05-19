@@ -22,6 +22,8 @@ import { LoginDto } from '../../CORE/Applications/Dtos/Login/LoginDto';
 import { Public } from '../../Shared/Common/Decorators/public.decorator';
 import { CurrentUser } from '../../Shared/Common/Decorators/current-user.decorator';
 import { UserDetailsDto } from 'src/CORE/Applications/Dtos/Responses/User/UserDetailsDto';
+import { ForgotPasswordDto } from 'src/CORE/Applications/Dtos/Password/forgotPasswordDto';
+import { ResetPasswordDto } from 'src/CORE/Applications/Dtos/Password/resetPasswordDto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -72,6 +74,10 @@ export class AuthController {
   @Post('refresh-token')
   refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const cookies = req.cookies as Record<string, string>;
+    console.log('cookies ', cookies);
+    console.log(
+      `cookies.refresh - ${cookies?.refreshToken}, token - ${cookies?.token}`,
+    );
     const refreshToken = cookies?.refreshToken;
     return this.authService.refreshToken(refreshToken, res);
   }
@@ -100,5 +106,23 @@ export class AuthController {
       role: user.role,
       isVerified: user.isVerified,
     };
+  }
+
+  //POST: /api/v1/forgot-password
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request a password reset email' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return await this.authService.ForgotPassword(dto.email);
+  }
+
+  //POST: /api/v1/reset-password
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset your password using token from email' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.ResetPassword(dto.token, dto.password);
   }
 }

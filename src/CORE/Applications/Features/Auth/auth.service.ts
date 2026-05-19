@@ -33,6 +33,7 @@ export class AuthService {
     console.log('inside the register method ');
     const existingUser = await this.userService.findUserByEmail(dto.email);
     if (existingUser) {
+      console.log('Invalid email, already in use');
       throw new ConflictException('Invalid email, already in use');
     }
 
@@ -68,6 +69,7 @@ export class AuthService {
   async verifyEmail(token: string, res: Response) {
     const user = await this.userService.findUserByVerificationToken(token);
     if (!user || !user.verificationToken) {
+      console.log('Invalid verification token');
       throw new BadRequestException('Invalid verification token');
     }
 
@@ -75,6 +77,7 @@ export class AuthService {
       user.verificationTokenExpiresAt &&
       user.verificationTokenExpiresAt < new Date()
     ) {
+      console.log('Verificationtoken has expired, please request a new one');
       throw new BadRequestException(
         'Verificationtoken has expired, please request a new one',
       );
@@ -107,21 +110,22 @@ export class AuthService {
     const user = await this.userService.findUserByEmail(dto.email);
 
     if (!user) {
+      console.log(`user not found`);
       throw new NotFoundException('User not found');
     }
 
-    console.log(
-      `user data for login - id = ${user.id}, password - ${user.passwordHash}`,
-    );
+    console.log(`user data for login - email = ${user.email}`);
     const isPasswordValid = await bcrypt.compare(
       dto.password,
       user.passwordHash,
     );
     if (!isPasswordValid) {
+      console.log(`Invalid password`);
       throw new UnauthorizedException('Invalid password');
     }
 
     if (!user.isVerified) {
+      console.log(`Please verify your email before logging in`);
       throw new BadRequestException(
         'Please verify your email before logging in',
       );
@@ -144,6 +148,67 @@ export class AuthService {
     };
   }
 
+  async ForgotPassword(email: string) {
+    const user = await this.userService.findUserByEmail(email);
+
+    if (!user) {
+      return {
+        message:
+          'If an account with that email exists, a reset link has been sent.',
+      };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.userService.updateUser(user.id, {
+      resetToken,
+      resetTokenExpiresAt,
+    });
+
+    void this.emailService.sendPasswordResetEmail(user.email, resetToken);
+
+    return {
+      message: `If an account with this email: ${user.email} exists, a reset link has been sent.`,
+    };
+  }
+
+  async ResetPassword(token: string, newPassword: string) {
+    const user = await this.userService.findUserByResetToken(token);
+
+    if (!user || !user.resetToken) {
+      console.log('Invalid reset token');
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    if (user.resetTokenExpiresAt && user.resetTokenExpiresAt < new Date()) {
+      console.log('ResetTokenExpiresAt is less than an hour');
+      throw new BadRequestException(
+        'Reset token has expired, Please request a new one',
+      );
+    }
+
+    const isEqual = await bcrypt.compare(newPassword, user.passwordHash);
+    if (isEqual) {
+      console.log('New Password must be different from the old Password');
+      throw new BadRequestException(
+        'New Password must be different from the old Password',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await this.userService.updateUser(user.id, {
+      passwordHash,
+      resetToken: null,
+      resetTokenExpiresAt: null,
+    });
+
+    return {
+      message: 'Password reset successful. You can now log in.',
+    };
+  }
+
   private async generateToken(user: UserDetailsDto) {
     const payload = { sub: user.id, email: user.email, role: user.role };
 
@@ -161,6 +226,7 @@ export class AuthService {
 
   async refreshToken(refreshToken: string, res: Response) {
     if (!refreshToken) {
+      console.log('Please provide a refresh token');
       throw new UnauthorizedException('Please provide a refresh token');
     }
 
@@ -171,12 +237,14 @@ export class AuthService {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
       });
     } catch {
+      console.log('inside the catch. Invalud refresh token');
       throw new UnauthorizedException('Invalid refresh token');
     }
 
     const user = await this.userService.getUserById(payload.sub);
 
     if (!user || !user.refreshTokenHash) {
+      console.log('Invalid refresh token');
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -186,6 +254,7 @@ export class AuthService {
     );
 
     if (!isRefreshTokenValid) {
+      console.log('Invalid refresh token');
       throw new UnauthorizedException('Invalid refresh token');
     }
 
