@@ -24,6 +24,7 @@ import { CurrentUser } from '../../Shared/Common/Decorators/current-user.decorat
 import { UserDetailsDto } from 'src/CORE/Applications/Dtos/Responses/User/UserDetailsDto';
 import { ForgotPasswordDto } from 'src/CORE/Applications/Dtos/Password/forgotPasswordDto';
 import { ResetPasswordDto } from 'src/CORE/Applications/Dtos/Password/resetPasswordDto';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -52,6 +53,7 @@ export class AuthController {
   }
 
   // POST: /api/v1/login
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login as a user, receive access + refresh token ' })
@@ -109,6 +111,7 @@ export class AuthController {
   }
 
   //POST: /api/v1/forgot-password
+  @Throttle({ default: { ttl: 60000, limit: 3 } })
   @Public()
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)

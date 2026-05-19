@@ -1,5 +1,5 @@
 export class UpdateUserDto {
-  id: string | number | undefined;
+  id?: string;
   name?: string;
   email?: string;
   passwordHash?: string;
