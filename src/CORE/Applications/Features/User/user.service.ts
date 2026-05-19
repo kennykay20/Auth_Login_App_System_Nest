@@ -1,16 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { IUserRepository } from '../../Persistences/IUserRepository';
 import { NotFoundException } from '@nestjs/common';
 import { UserDetailsDto } from '../../Dtos/Responses/User/UserDetailsDto';
 import { UserMapper } from '../../Mappers/UserMapper';
 import { CreateUserDto } from '../../Dtos/User/CreateUserDto';
-import { User } from 'src/Domain/Entities/User';
+import { User } from '../../../../Domain/Entities/User';
 //import { Injectable } from '@nestjs/common';
+export const USER_REPOSITORY = 'USER_REPOSITORY';
 
 @Injectable()
 export class UserService {
   // Implement your user-related business logic here
-  constructor(private userRepository: IUserRepository) {}
+
+  constructor(
+    @Inject(USER_REPOSITORY)
+    private userRepository: IUserRepository,
+  ) {}
 
   async getUserById(id: string): Promise<UserDetailsDto> {
     const result = await this.userRepository.findById(id);

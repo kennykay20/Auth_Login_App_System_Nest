@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../User/user.service';
 import { EmailService } from '../../../../Infrastructure/Services/email.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import type { RegisterDto } from '../../Dtos/Register/RegisterDto';
 import type { LoginDto } from '../../Dtos/Login/LoginDto';
@@ -27,7 +27,6 @@ export class AuthService {
     private emailService: EmailService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    //private userRepository: IUserRepository, // Replace 'any' with your actual User entity type
   ) {}
 
   async Register(dto: RegisterDto) {

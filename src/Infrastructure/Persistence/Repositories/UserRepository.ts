@@ -4,7 +4,9 @@ import { db } from '../Db';
 import { eq } from 'drizzle-orm';
 import { users, type NewUser } from '../Db/schema';
 import { UserMapper } from 'src/CORE/Applications/Mappers/UserMapper';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class UserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const result = await db.query.users.findFirst({
