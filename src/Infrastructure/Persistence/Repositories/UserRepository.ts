@@ -41,6 +41,9 @@ export class UserRepository implements IUserRepository {
   }
 
   async create(item: NewUser): Promise<User> {
+    console.log(
+      `item for create email- ${item.email}, password - ${item.passwordHash}`,
+    );
     const [result] = await db.insert(users).values(item).returning();
     return UserMapper.toDomain(result);
   }

@@ -23,7 +23,7 @@ export class UserMapper {
 
   static fromDomainToUserDetailsDto(user: User): UserDetailsDto {
     return {
-      id: user.id,
+      id: user.id!,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -42,6 +42,23 @@ export class UserMapper {
   static toDomainFromCreateUserDto(createUserDto: CreateUserDto): User {
     return {
       id: '',
+      name: createUserDto.name!,
+      email: createUserDto.email!,
+      passwordHash: createUserDto.passwordHash!,
+      role: 'user',
+      isVerified: false,
+      verificationToken: null,
+      verificationTokenExpiresAt: null,
+      resetToken: null,
+      resetTokenExpiresAt: null,
+      refreshTokenHash: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  static toNewUser(createUserDto: CreateUserDto): NewUser {
+    return {
       name: createUserDto.name!,
       email: createUserDto.email!,
       passwordHash: createUserDto.passwordHash!,

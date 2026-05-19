@@ -30,7 +30,8 @@ export class AuthService {
   ) {}
 
   async Register(dto: RegisterDto) {
-    const existingUser = await this.userService.getUserByEmail(dto.email);
+    console.log('inside the register method ');
+    const existingUser = await this.userService.findUserByEmail(dto.email);
     if (existingUser) {
       throw new ConflictException('Invalid email, already in use');
     }
@@ -103,12 +104,15 @@ export class AuthService {
   }
 
   async Login(dto: LoginDto, res: Response) {
-    const user = await this.userService.getUserByEmail(dto.email);
+    const user = await this.userService.findUserByEmail(dto.email);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    console.log(
+      `user data for login - id = ${user.id}, password - ${user.passwordHash}`,
+    );
     const isPasswordValid = await bcrypt.compare(
       dto.password,
       user.passwordHash,

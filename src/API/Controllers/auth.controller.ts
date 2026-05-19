@@ -26,7 +26,7 @@ import { UserDetailsDto } from 'src/CORE/Applications/Dtos/Responses/User/UserDe
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
   // POST: /api/v1/register
   @Public()
@@ -34,6 +34,7 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   async register(@Body() dto: RegisterDto) {
+    console.log('inside the register route ');
     return await this.authService.Register(dto);
   }
 
@@ -57,7 +58,8 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return await this.authService.Login(dto, res);
+    console.log('Inside the login controller');
+    return this.authService.Login(dto, res);
   }
 
   // POST: /api/v1/refresh-token

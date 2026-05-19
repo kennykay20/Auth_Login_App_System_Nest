@@ -25,12 +25,24 @@ export class UserService {
     return UserMapper.fromDomainToUserDetailsDto(result);
   }
 
-  async getUserByEmail(email: string): Promise<UserDetailsDto> {
+  async findUserByEmail(email: string): Promise<UserDetailsDto | null> {
+    console.log('inside the getUserByemail method repo');
     const result = await this.userRepository.findByEmail(email);
     if (!result) {
-      throw new NotFoundException('User not found');
+      console.log('user not found');
+      return null;
     }
     return UserMapper.fromDomainToUserDetailsDto(result);
+  }
+
+  async getUserByEmail(email: string): Promise<UserDetailsDto> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return UserMapper.fromDomainToUserDetailsDto(user);
   }
 
   async findUserByVerificationToken(
@@ -44,8 +56,14 @@ export class UserService {
   }
 
   async createUser(userDetails: CreateUserDto): Promise<UserDetailsDto> {
-    const user = UserMapper.toDomainFromCreateUserDto(userDetails);
+    const user = UserMapper.toNewUser(userDetails);
+    console.log(
+      `userDto - email - ${user.email}, and password - ${user.passwordHash}`,
+    );
     const createdUser = await this.userRepository.create(user);
+    console.log(
+      `user created id - ${createdUser.id}, createdDate - ${createdUser.createdAt.toISOString()}`,
+    );
     return UserMapper.fromDomainToUserDetailsDto(createdUser);
   }
 
